@@ -18,6 +18,7 @@
   "homepage": "https://github.com/EricPedley/Audio-Splicer#readme",
   "dependencies": {
     "dotenv": "^8.2.0",
+    "ffmpeg": "0.0.4",
     "node-fetch": "^2.6.0"
   }
 }

@@ -1,4 +1,5 @@
 const fetch = require("node-fetch");
+const ffmpeg = require("ffmpeg");
 const { createReadStream } = require('fs');
 const stream = createReadStream('audio-file.flac');
 if(process.env.NODE_ENV!=="production")
@@ -16,4 +17,6 @@ fetch(`${url}/v1/recognize?timestamps=true`,options).then((res)=>{
     return res.json();
 }).then((json)=>{
     console.log(JSON.stringify(json.results[0].alternatives));
-})
+});
+
+//fmpeg example command https://stackoverflow.com/questions/21491091/splitting-an-audio-mp3-file: ffmpeg -i long.mp3 -acodec copy -ss 00:00:00 -t 00:30:00 half1.mp3
