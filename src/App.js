@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd'
+
+
+
+const placeholderData = [
+  {id:1,name:"never",time:"00:00 - 00:01"},
+  {id:2,name:"gonna",time:"00:01 - 00:02"},
+  {id:3,name:"give",time:"00:02 - 00:03"}
+]
+
 function App() {
-  const [state, setState] = useState(["apples", "banannas", "cherries", "dates"])
+  const [state, setState] = useState({available:[1,2,3],used:[]})
   console.log("rerendering", state)
   const onDragEnd = result => {
     const { destination, source, draggableId } = result;
@@ -9,18 +18,20 @@ function App() {
       return;
     if (destination.droppableId === source.droppableId && destination.index === source.index)
       return;
-    const newArray = Array.from(state);
-    newArray.splice(source.index, 1);
-    newArray.splice(destination.index, 0, draggableId)
-    setState(newArray);
+    const newState = Object.assign({},state);
+    newState[source.droppableId].splice(source.index, 1);
+    newState[destination.droppableId].splice(destination.index, 0, draggableId)
+    setState(newState);
   }
   return (
     <div className="App">
       <DragDropContext onDragEnd={onDragEnd}>
-        <DroppableCard droppableId="droppable-1">
-          <h2>I am a droppable!</h2>
-          {state.map((fruit, index) => <DraggableCard draggableId={fruit} index={index} key={fruit}>{fruit}</DraggableCard>)}
+        <DroppableCard droppableId="available">
+          {state.available.map((id, index) => <Clip draggableId={`${id}`} index={index} key={id}></Clip>)}
         </DroppableCard>
+        <DroppableCard droppableId="used">
+        {state.used.map((id, index) => <Clip draggableId={`${id}`} index={index} key={id}></Clip>)}
+          </DroppableCard>
       </DragDropContext>
     </div >
   );
@@ -35,11 +46,21 @@ function SongClipsPool(props) {//there will only be one of these
 }
 
 function Clip(props) {
-  const { name, start, end } = props.data;
-  return <div>
-    {name}
-    <div>{start}-{end}</div>
-  </div>
+  const { name, time } = placeholderData.find(element=>Number(props.draggableId)===element.id);
+  return <Draggable draggableId={props.draggableId} index={props.index}>
+  {(provided) =>
+    <div
+      ref={provided.innerRef}
+      {...provided.draggableProps}
+      {...provided.dragHandleProps}>
+      <div style={{
+        border: "solid 2px",
+        backgroundColor: "white",
+        padding: "10px"
+      }}>{name}<div>{time}</div></div>
+
+    </div>}
+</Draggable>
 }
 
 const DroppableCard = (props) => {
@@ -62,25 +83,4 @@ const DroppableCard = (props) => {
     </Droppable>
   )
 }
-
-const DraggableCard = (props) => {
-  return (
-    <Draggable draggableId={props.draggableId} index={props.index}>
-      {(provided) =>
-        <div
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          {...provided.dragHandleProps}>
-          <div style={{
-            border: "solid 2px",
-            backgroundColor: "white",
-            padding: "10px"
-          }}>{props.children}</div>
-
-        </div>}
-    </Draggable>
-
-  )
-}
-
 export default App;
