@@ -1,0 +1,7 @@
+#clips-pool {
+    display:flex;
+}
+.clip {
+    padding:10px;
+    border:solid 1px;
+}
