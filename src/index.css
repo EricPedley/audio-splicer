@@ -1,7 +1,14 @@
-#clips-pool {
+.clips-pool {
     display:flex;
+    border:solid 2px;
+    min-height:calc(30px + 2em);
+}
+#available {
+    justify-content: center;
 }
 .clip {
     padding:10px;
     border:solid 1px;
+    background-color: white;
+    padding: 10px;
 }
