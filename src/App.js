@@ -4,19 +4,19 @@ import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd'
 
 
 const placeholderData = [
-  { id: 1, name: "never", time: "00:00 - 00:01" },
-  { id: 2, name: "gonna", time: "00:01 - 00:02" },
-  { id: 3, name: "give", time: "00:02 - 00:03" },
-  { id: 4, name: "you", time: "00:03 - 00:04" }
+  { id: 1, name: "never", start:"0", end:"1" },
+  { id: 2, name: "gonna", start:"0", end:"1" },
+  { id: 3, name: "give", start:"0", end:"1" },
+  { id: 4, name: "you", start:"0", end:"1" }
 ];
 
 var uniquenumber = 0;
 
 const DataContext = React.createContext();
 function App() {
-  const [available,setAvailable] = useState([1,2,3]);
-  const [used,setUsed] = useState([]);
-  const [data,setData] = useState(placeholderData);
+  const [available,setAvailable] = useState([1,2,3]);//the IDs of the unused clips
+  const [used,setUsed] = useState([]);//the IDs of the clips being used
+  const [data,setData] = useState(placeholderData);//lookup table for info about each clip id
   const onDragEnd = result => {
     const { destination, source, draggableId } = result;
     if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index))//no destination or dropped in same location
@@ -37,9 +37,14 @@ function App() {
   }
 
   function buildMP3() {
+    const reqData = used.map(uniqueID=>{
+      const id = Number((uniqueID+"").split("-")[0]);
+      const {start,end} = data.find(element => id === element.id);
+      return [start,end];
+    });
     const options = {
       method: "POST",
-      body: JSON.stringify(used)
+      body: JSON.stringify(reqData)
     }
     fetch("http://localhost:3001/build-mp3", options).then(console.log)
   }
@@ -50,8 +55,9 @@ function App() {
       const newData = json[0].timestamps.map((timestamp, index) => (
         {
           id: index,
-          name: timestamp[0]
-          , time: `${timestamp[1]}-${timestamp[2]}`
+          name: timestamp[0], 
+          start: timestamp[1],
+          end: timestamp[2]
         }));
       console.log(newData);
       setData(newData);
@@ -93,7 +99,7 @@ function ClipsPool(props) {//it is fed the available clips through props
 function Clip(props) {
   const data=useContext(DataContext);
   console.log(data);
-  const { name, time } = data.find(element => Number(props.draggableId.split("-")[0]) === element.id);
+  const { name, start,end } = data.find(element => Number(props.draggableId.split("-")[0]) === element.id);
   return <Draggable draggableId={props.draggableId} index={props.index}>
     {(provided) =>
       <div className="clip"
@@ -101,7 +107,7 @@ function Clip(props) {
         {...provided.draggableProps}
         {...provided.dragHandleProps}>
         {name}
-        <div>{time}</div>
+        <div>{start} - {end}</div>
         <button onClick={props.onDuplicate}>Duplicate</button>
       </div>}
   </Draggable>
