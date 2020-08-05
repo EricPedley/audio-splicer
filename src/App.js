@@ -9,7 +9,9 @@ const placeholderData = [
   { id: 3, name: "give", time: "00:02 - 00:03" },
   { id: 4, name: "you", time: "00:03 - 00:04" }
 ]
+
 var uniquenumber=0;
+
 function App() {
   const [state, setState] = useState({ available: [1, 2, 3], used: [] });
   const onDragEnd = result => {
@@ -34,12 +36,20 @@ function App() {
       setState({...state,used:[...state.used,`${id}-${uniquenumber++}`]});
     }
   }
+  function buildMP3() {
+    const options  = {
+      method:"POST",
+      body:JSON.stringify(state.used)
+    }
+    fetch("http://localhost:3001/build-mp3",options).then((res)=>console.log(res))
+  }
   return (
-    <div className="App">
+    <div id="app">
       <DragDropContext onDragEnd={onDragEnd}>
         <ClipsPool clips={state.available} onDuplicate = {(id)=>duplicateClip(id,true)} droppableId = "available" id = "available"></ClipsPool>
         <ClipsPool clips={state.used}  onDuplicate = {(id)=>duplicateClip(id,false)} droppableId = "used"></ClipsPool>
       </DragDropContext>
+      <button onClick={buildMP3}>Export to mp3</button>
     </div >
   );
 }
