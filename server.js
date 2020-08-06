@@ -2,6 +2,7 @@ const fetch = require("node-fetch");
 const ffmpeg = require("ffmpeg");
 const express = require("express");
 const cors = require("cors");
+const fileUpload = require("express-fileupload");
 const { createReadStream, writeFile } = require('fs');
 const { exec } = require("child_process");
 if (process.env.NODE_ENV !== "production")
@@ -12,8 +13,9 @@ if (process.env.NODE_ENV !== "production")
 
 const app = express();
 app.use(cors());
-//app.use(express.json({ type: "application/json" }));
-app.use(express.raw())
+app.use(express.json({ type: "application/json" }));
+app.use(fileUpload());
+//app.use(express.raw())
 
 
 app.post("/build-mp3", function (req, res) {
@@ -47,8 +49,10 @@ app.get("/audio-fragments", async function (req, res) {
     const data = await speechRecReq(audioFileName);
     res.send(data.results[0].alternatives);
 })
-app.post("/file-upload", function(req,res) {
-    console.log("file upload req",req.body);
+app.post("/file-upload", async function (req, res) {
+    console.log("file upload req", req.files.audioFile.data);
+    const response = await speechRecFromBuffer(req.files.audioFile.data);
+    console.log("response",JSON.stringify(response.results[0].alternatives));
     res.redirect("http://localhost:3000");
 })
 app.listen(3001, () => console.log("running on 3001"))
@@ -76,6 +80,21 @@ function speechRecReq(fileName) {
     // return fetch(`${url}/v1/recognize?timestamps=true`, options).then((res) => {
     //     return res.json();
     // });
+}
+
+function speechRecFromBuffer(buffer) {
+    const url = process.env.API_URL
+    const options = {
+        method: "POST",
+        headers: {
+            ContentType: "audio/mp3",
+            Authorization: `Basic ${Buffer.from(`apikey:${process.env.API_KEY}`, 'utf-8').toString("base64")}`
+        },
+        body: buffer
+    }
+    return fetch(`${url}/v1/recognize?timestamps=true`, options).then((res) => {
+        return res.json();
+    });
 }
 
 function splitVideo(fileName) {

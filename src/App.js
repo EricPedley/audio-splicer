@@ -75,8 +75,8 @@ function App() {
       </DragDropContext>
       <button onClick={buildMP3}>Export to mp3</button>
       <button onClick={getData}>Get data(test button)</button>
-      <form method="POST" action="http://localhost:3001/file-upload">
-        <input type="file" id="myFile" name="filename"></input>
+      <form method="POST" action="http://localhost:3001/file-upload" encType="multipart/form-data">
+        <input type="file" id="myFile" name="audioFile" accept=".mp3"></input>
         <input type="submit"></input>
       </form>
     </div >
