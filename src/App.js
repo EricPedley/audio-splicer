@@ -17,6 +17,9 @@ function App() {
   const [available, setAvailable] = useState([1, 2, 3]);//the IDs of the unused clips
   const [used, setUsed] = useState([]);//the IDs of the clips being used
   const [data, setData] = useState(placeholderData);//lookup table for info about each clip id
+  const [DLID, setDLID] = useState();//id of file for upload and download
+
+
   const onDragEnd = result => {
     const { destination, source, draggableId } = result;
     if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index))//no destination or dropped in same location
@@ -44,15 +47,28 @@ function App() {
     });
     const options = {
       method: "POST",
-      body: JSON.stringify(reqData)
+      headers: {
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify({clips:reqData,id:DLID})
     }
-    fetch("http://localhost:3001/build-mp3", options).then(console.log)
+    fetch("http://localhost:3001/build-mp3", options).then(res=>{
+      console.log(res);
+    });
   }
 
   function getData() {
-    fetch("http://localhost:3001/audio-fragments").then(res => res.json()).then(json => {
+    const form = new FormData();
+    const file = document.getElementById("audioFile").files[0]
+    form.append("audioFile",file);
+    const options = {
+      method: "POST",
+      body: form
+    }
+    fetch("http://localhost:3001/audio-fragments", options).then(res => res.json()).then(json => {
       console.log(json)
-      const newData = json[0].timestamps.map((timestamp, index) => (
+      setDLID(json.id);
+      const newData = json.data[0].timestamps.map((timestamp, index) => (
         {
           id: index,
           name: timestamp[0],
@@ -62,7 +78,7 @@ function App() {
       console.log(newData);
       setData(newData);
       setAvailable(newData.map((e, index) => index));
-    })
+    }).catch(console.log);
   }
 
   return (
@@ -74,11 +90,9 @@ function App() {
         </DataContext.Provider>
       </DragDropContext>
       <button onClick={buildMP3}>Export to mp3</button>
-      <button onClick={getData}>Get data(test button)</button>
-      <form method="POST" action="http://localhost:3001/file-upload" encType="multipart/form-data">
-        <input type="file" id="myFile" name="audioFile" accept=".mp3"></input>
-        <input type="submit"></input>
-      </form>
+      <button onClick={getData}>Get words</button>
+      <input type="file" id="audioFile" name="audioFile" accept=".mp3"></input>
+      {DLID&& <a href = {`/tempfiles/output${DLID}.mp3`}>download link</a>}
     </div >
   );
 }
@@ -102,7 +116,6 @@ function ClipsPool(props) {//it is fed the available clips through props
 
 function Clip(props) {
   const data = useContext(DataContext);
-  console.log(data);
   const { name, start, end } = data.find(element => Number(props.draggableId.split("-")[0]) === element.id);
   return <Draggable draggableId={props.draggableId} index={props.index}>
     {(provided) =>
