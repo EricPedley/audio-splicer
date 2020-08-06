@@ -12,7 +12,8 @@ if (process.env.NODE_ENV !== "production")
 
 const app = express();
 app.use(cors());
-app.use(express.json({ type: "*/*" }));
+//app.use(express.json({ type: "application/json" }));
+app.use(express.raw())
 
 
 app.post("/build-mp3", function (req, res) {
@@ -40,12 +41,24 @@ app.post("/build-mp3", function (req, res) {
         });
     });
 })
+
+
 app.get("/audio-fragments", async function (req, res) {
     const data = await speechRecReq(audioFileName);
     res.send(data.results[0].alternatives);
-
+})
+app.post("/file-upload", function(req,res) {
+    console.log("file upload req",req.body);
+    res.redirect("http://localhost:3000");
 })
 app.listen(3001, () => console.log("running on 3001"))
+
+
+
+
+
+
+
 
 function speechRecReq(fileName) {
     const placeholder = [["several", 1, 1.52], ["tornadoes", 1.52, 2.15], ["touched", 2.15, 2.54], ["down", 2.54, 2.82], ["as", 2.82, 2.92], ["a", 2.92, 3], ["line", 3, 3.3], ["of", 3.3, 3.39], ["severe", 3.39, 3.77], ["thunderstorms", 3.77, 4.51], ["swept", 4.51, 4.79], ["through", 4.79, 4.95], ["Colorado", 4.95, 5.6], ["on", 5.6, 5.73], ["Sunday", 5.73, 6.35]]
