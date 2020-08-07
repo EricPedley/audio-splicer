@@ -52,7 +52,7 @@ function App() {
       },
       body: JSON.stringify({clips:reqData,id:DLID})
     }
-    fetch("http://localhost:3001/build-mp3", options).then(res=>{
+    fetch("http://localhost:3001/build-mp3", options).then(res=>{//since this creates a new file it reloads the window when run in the dev server
       console.log(res);
     });
   }
@@ -92,7 +92,7 @@ function App() {
       <button onClick={buildMP3}>Export to mp3</button>
       <button onClick={getData}>Get words</button>
       <input type="file" id="audioFile" name="audioFile" accept=".mp3"></input>
-      {DLID&& <a href = {`/tempfiles/output${DLID}.mp3`}>download link</a>}
+      {DLID&& <a href = {`http://localhost:3001/tempfiles/output${DLID}.mp3`}>download link</a>}
     </div >
   );
 }

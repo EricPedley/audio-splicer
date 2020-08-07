@@ -14,17 +14,18 @@ const app = express();
 app.use(cors());
 app.use(express.json({ type: "application/json" }));
 app.use(fileUpload());
+app.use(express.static("serverfiles"));
 //app.use(express.raw())
 var uniqueNumber=1;//hack-y solution, change this
 app.post("/build-mp3", function (req, res) {
     const {clips,id} = req.body;
     let concatListString = "";
-    const audioFileName = `public/tempfiles/input${id}.mp3`;
+    const audioFileName = `serverfiles/tempfiles/input${id}.mp3`;
     for (const [start, end] of clips) {
         concatListString += `file ${audioFileName}\ninpoint ${start}\noutpoint ${end}\n`;
     }
     const inputTextFileName = "concatlist.txt";//HARD CODED (this might be fine)
-    const outputAudioFileName = `public/tempfiles/output${id}.mp3`
+    const outputAudioFileName = `serverfiles/tempfiles/output${id}.mp3`
     writeFile(inputTextFileName, concatListString, (err) => {
         console.log(err);
         exec(`ffmpeg -f concat -i ${inputTextFileName} ${outputAudioFileName}`, (error, stdout, stderr) => {
@@ -47,7 +48,7 @@ app.post("/build-mp3", function (req, res) {
 
 app.post("/audio-fragments", async function (req, res) {
     const file = req.files.audioFile;
-    file.mv(`public/tempfiles/input${uniqueNumber}.mp3`);
+    file.mv(`serverfiles/tempfiles/input${uniqueNumber}.mp3`);
     const data = await speechRecFromBuffer(file.data);
     res.send({id:uniqueNumber++,data:data.results[0].alternatives});
 })
