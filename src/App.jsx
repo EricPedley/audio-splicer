@@ -58,6 +58,26 @@ function App() {
     });
   }
 
+  function getPlaceholderData() {
+    const options = {
+      method: "POST"
+    }
+    fetch("http://localhost:3001/placeholder-fragments", options).then(res => res.json()).then(json => {
+      console.log(json)
+      setDLID(json.id);
+      const newData = json.data[0].timestamps.map((timestamp, index) => (
+        {
+          id: index,
+          name: timestamp[0],
+          start: timestamp[1],
+          end: timestamp[2]
+        }));
+      console.log(newData);
+      setData(newData);
+      setAvailable(newData.map((e, index) => index));
+    }).catch(console.log);
+  }
+
   function getData() {
     const form = new FormData();
     const file = document.getElementById("audioFile").files[0]
@@ -91,6 +111,7 @@ function App() {
         </DataContext.Provider>
       </DragDropContext>
       <button onClick={buildMP3}>Export to mp3</button>
+      <button onClick={getPlaceholderData}>Get placeholder data</button>
       <button onClick={getData}>Get words</button>
       <input type="file" id="audioFile" name="audioFile" accept=".mp3"></input><br></br>
       {isDLShowing&& <a href = {`http://localhost:3001/tempfiles/output${DLID}.mp3`}>output link</a>}
