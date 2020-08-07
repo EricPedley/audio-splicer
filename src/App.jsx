@@ -18,7 +18,7 @@ function App() {
   const [used, setUsed] = useState([]);//the IDs of the clips being used
   const [data, setData] = useState(placeholderData);//lookup table for info about each clip id
   const [DLID, setDLID] = useState();//id of file for upload and download
-
+  const [isDLShowing,showDL] = useState(false);
 
   const onDragEnd = result => {
     const { destination, source, draggableId } = result;
@@ -54,6 +54,7 @@ function App() {
     }
     fetch("http://localhost:3001/build-mp3", options).then(res=>{//since this creates a new file it reloads the window when run in the dev server
       console.log(res);
+      showDL(true);
     });
   }
 
@@ -91,8 +92,8 @@ function App() {
       </DragDropContext>
       <button onClick={buildMP3}>Export to mp3</button>
       <button onClick={getData}>Get words</button>
-      <input type="file" id="audioFile" name="audioFile" accept=".mp3"></input>
-      {DLID&& <a href = {`http://localhost:3001/tempfiles/output${DLID}.mp3`}>download link</a>}
+      <input type="file" id="audioFile" name="audioFile" accept=".mp3"></input><br></br>
+      {isDLShowing&& <a href = {`http://localhost:3001/tempfiles/output${DLID}.mp3`}>output link</a>}
     </div >
   );
 }
