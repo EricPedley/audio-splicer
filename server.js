@@ -2,7 +2,7 @@ const fetch = require("node-fetch");
 const express = require("express");
 const cors = require("cors");
 const fileUpload = require("express-fileupload");
-const { writeFile } = require('fs');
+const { writeFile, writeFileSync, readFileSync } = require('fs');
 const { exec } = require("child_process");
 if (process.env.NODE_ENV !== "production")
     require("dotenv").config()
@@ -16,7 +16,6 @@ app.use(express.json({ type: "application/json" }));
 app.use(fileUpload());
 app.use(express.static("serverfiles"));
 //app.use(express.raw())
-var uniqueNumber=1;//hack-y solution, change this
 app.post("/build-mp3", function (req, res) {
     const {clips,id} = req.body;
     let concatListString = "";
@@ -49,22 +48,17 @@ app.post("/build-mp3", function (req, res) {
 app.post("/audio-fragments", async function (req, res) {
     const file = req.files.audioFile;
     file.mv(`serverfiles/tempfiles/input${uniqueNumber}.mp3`);
-    const data = await speechRecFromBuffer(file.data);
-    res.send({id:uniqueNumber++,data:data.results[0].alternatives});
+    const uniqueNumber = generateUniqueNumber();
+    const ibmres = await speechRecFromBuffer(file.data);//response from IBM server with timestamps
+    res.send({id:uniqueNumber,data:ibmres.results[0].alternatives});
 })
 
 app.post("/placeholder-fragments", function(req,res) {
+    const uniqueNumber = generateUniqueNumber();
     const placeholder = [["several", 1, 1.52], ["tornadoes", 1.52, 2.15], ["touched", 2.15, 2.54], ["down", 2.54, 2.82], ["as", 2.82, 2.92], ["a", 2.92, 3], ["line", 3, 3.3], ["of", 3.3, 3.39], ["severe", 3.39, 3.77], ["thunderstorms", 3.77, 4.51], ["swept", 4.51, 4.79], ["through", 4.79, 4.95], ["Colorado", 4.95, 5.6], ["on", 5.6, 5.73], ["Sunday", 5.73, 6.35]]
-    res.send({id:uniqueNumber++,data:[{timestampcs:placeholder}]});
+    res.send({id:uniqueNumber,data:[{timestamps:placeholder}]});
 })
 app.listen(3001, () => console.log("running on 3001"))
-
-
-
-
-
-
-
 
 
 function speechRecFromBuffer(buffer) {
@@ -82,7 +76,17 @@ function speechRecFromBuffer(buffer) {
     });
 }
 
-
+function generateUniqueNumber() {
+    const pathToNum = "serverfiles/tempfiles/uniqueNum.txt";
+    let uniqueNumber;
+    try{
+        uniqueNumber = Number(readFileSync(pathToNum).toString());
+    } catch(e) {
+        uniqueNumber = 1;
+    }
+    writeFileSync(pathToNum,(uniqueNumber+1));
+    return uniqueNumber;
+}
 
 //fmpeg example command https://stackoverflow.com/questions/21491091/splitting-an-audio-mp3-file: ffmpeg -i long.mp3 -acodec copy -ss 00:00:00 -t 00:30:00 half1.mp3
 //concatenate docs: https://trac.ffmpeg.org/wiki/Concatenate https://stackoverflow.com/questions/42747935/cut-multiple-videos-and-merge-with-ffmpeg
