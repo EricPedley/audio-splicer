@@ -113,7 +113,7 @@ function App() {
       <button onClick={buildMP3}>Export to mp3</button>
       <button onClick={getPlaceholderData}>Get placeholder data</button>
       <button onClick={getData}>Get words</button>
-      <input type="file" id="audioFile" name="audioFile" accept=".mp3"></input><br></br>
+      <input type="file" id="audioFile" name="audioFile" accept=".mp3, .mp4"></input><br></br>
       {isDLShowing&& <a href = {`http://localhost:3001/tempfiles/output${DLID}.mp3`}>output link</a>}
     </div >
   );

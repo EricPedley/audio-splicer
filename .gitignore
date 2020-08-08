@@ -23,5 +23,7 @@ yarn-debug.log*
 yarn-error.log*
 
 *.mp3
+*.mp4
 concatlist.txt
 .env
+uniqueNum.txt
