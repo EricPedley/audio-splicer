@@ -110,15 +110,34 @@ function App() {
     video.load();
 
   }
+  
+  function playClip(start, end) {
+    const video = document.getElementById("video")
+    video.currentTime = start;
+    function oneTimePause() {
+      if (video.currentTime > end) {
+        console.log("video pausing");
+        video.pause();
+        //video.removeEventListener("timeupdate",oneTimePause);
+      } else {
+        requestAnimationFrame(oneTimePause)
+      }
+    }
+    requestAnimationFrame(oneTimePause)
+    //video.addEventListener("timeupdate", oneTimePause);
+    video.play();
+    //setTimeout(()=>{console.log("trying to pause video"); video.pause()},(end-start)*1000);
+  }
   return (
     <div id="app">
-      <video id="video" controls>
+      {/* TODO style the video element */}
+      <video id="video" controls visible="false">
         <source id="source" type="video/mp4"></source>
       </video>
       <DragDropContext onDragEnd={onDragEnd}>
         <DataContext.Provider value={data}>
-          <ClipsPool clips={available} onDuplicate={(id) => duplicateClip(id, true)} droppableId="available" id="available"></ClipsPool>
-          <ClipsPool clips={used} onDuplicate={(id) => duplicateClip(id, false)} droppableId="used"></ClipsPool>
+          <ClipsPool clips={available} onDuplicate={(id) => duplicateClip(id, true)} onPlay={playClip} droppableId="available" id="available"></ClipsPool>
+          <ClipsPool clips={used} onDuplicate={(id) => duplicateClip(id, false)} onPlay={playClip} droppableId="used"></ClipsPool>
         </DataContext.Provider>
       </DragDropContext>
       <button onClick={buildMP3}>Export to mp3</button>
@@ -141,7 +160,7 @@ function ClipsPool(props) {//it is fed the available clips through props
         ref={provided.innerRef}
         {...provided.droppableProps}
       >
-        {clips.map((id, index) => <Clip onDuplicate={() => props.onDuplicate(id)} draggableId={`${id}`} index={index} key={id}></Clip>)}
+        {clips.map((id, index) => <Clip onDuplicate={() => props.onDuplicate(id)} onPlay={props.onPlay} draggableId={`${id}`} index={index} key={id}></Clip>)}
         {provided.placeholder}
       </div>
     }
@@ -160,6 +179,7 @@ function Clip(props) {
         {name}
         <div>{start} - {end}</div>
         <button onClick={props.onDuplicate}>Duplicate</button>
+        <button onClick={() => props.onPlay(start, end)}>Play</button>
       </div>}
   </Draggable>
 }
