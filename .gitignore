@@ -27,3 +27,5 @@ yarn-error.log*
 concatlist.txt
 .env
 uniqueNum.txt
+pretrained_models
+spleeteroutput

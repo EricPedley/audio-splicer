@@ -15,6 +15,7 @@ function speechRecFromBuffer(buffer) {
         body: buffer
     }
     return fetch(`${url}/v1/recognize?timestamps=true`, options).then((res) => {
+        console.log(res);
         return res.json();
     });
 }

@@ -18,7 +18,7 @@ function App() {
   const [used, setUsed] = useState([]);//the IDs of the clips being used
   const [data, setData] = useState(placeholderData);//lookup table for info about each clip id
   const [DLID, setDLID] = useState();//id of file for upload and download
-  const [isDLShowing,showDL] = useState(false);
+  const [isDLShowing, showDL] = useState(false);
 
   const onDragEnd = result => {
     const { destination, source, draggableId } = result;
@@ -48,11 +48,11 @@ function App() {
     const options = {
       method: "POST",
       headers: {
-        "Content-Type":"application/json"
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({clips:reqData,id:DLID})
+      body: JSON.stringify({ clips: reqData, id: DLID })
     }
-    fetch("http://localhost:3001/build-mp3", options).then(res=>{//since this creates a new file it reloads the window when run in the dev server
+    fetch("http://localhost:3001/build-mp3", options).then(res => {//since this creates a new file it reloads the window when run in the dev server
       console.log(res);
       showDL(true);
     });
@@ -81,7 +81,7 @@ function App() {
   function getData() {
     const form = new FormData();
     const file = document.getElementById("audioFile").files[0]
-    form.append("audioFile",file);
+    form.append("audioFile", file);
     const options = {
       method: "POST",
       body: form
@@ -101,9 +101,20 @@ function App() {
       setAvailable(newData.map((e, index) => index));
     }).catch(console.log);
   }
+  function displayVideo() {
+    const file = document.getElementById("audioFile").files[0];
+    const src = URL.createObjectURL(file);
+    const video = document.getElementById("video");
+    const source = document.getElementById("source");
+    source.setAttribute("src", src);
+    video.load();
 
+  }
   return (
     <div id="app">
+      <video id="video" controls>
+        <source id="source" type="video/mp4"></source>
+      </video>
       <DragDropContext onDragEnd={onDragEnd}>
         <DataContext.Provider value={data}>
           <ClipsPool clips={available} onDuplicate={(id) => duplicateClip(id, true)} droppableId="available" id="available"></ClipsPool>
@@ -113,8 +124,9 @@ function App() {
       <button onClick={buildMP3}>Export to mp3</button>
       <button onClick={getPlaceholderData}>Get placeholder data</button>
       <button onClick={getData}>Get words</button>
+      <button onClick={displayVideo}>Display video</button>
       <input type="file" id="audioFile" name="audioFile" accept=".mp3, .mp4"></input><br></br>
-      {isDLShowing&& <a href = {`http://localhost:3001/tempfiles/output${DLID}.mp3`}>output link</a>}
+      {isDLShowing && <a href={`http://localhost:3001/tempfiles/output${DLID}.mp3`}>output link</a>}
     </div >
   );
 }
