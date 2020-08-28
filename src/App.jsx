@@ -19,7 +19,7 @@ function App() {
   const [data, setData] = useState(placeholderData);//lookup table for info about each clip id
   const [DLID, setDLID] = useState();//id of file for upload and download
   const [isDLShowing, showDL] = useState(false);
-  console.log(available,used)
+  console.log(available, used)
   const onDragEnd = result => {
     const { destination, source, draggableId } = result;
     if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index))//no destination or dropped in same location
@@ -29,27 +29,6 @@ function App() {
     states[destination.droppableId].splice(destination.index, 0, draggableId)//insert into new place
     setAvailable(states.available);
     setUsed(states.used);
-  }
-
-  function duplicateClip(id, isAvailable) {
-    if (isAvailable) {
-      setAvailable([...available, `${id}-${uniquenumber++}`]);
-    } else {
-      setUsed([...used, `${id}-${uniquenumber++}`]);
-    }
-    
-  }
-
-  function deleteClip(id,isAvailable) {
-    if (isAvailable) {
-      const duplicateArray = [...available];
-      duplicateArray.splice(duplicateArray.indexOf(id),1)
-      setAvailable(duplicateArray);
-    } else {
-      const duplicateArray = [...used];
-      duplicateArray.splice(duplicateArray.indexOf(id),1)
-      setUsed(duplicateArray);
-    }
   }
 
   function buildMP3() {
@@ -114,7 +93,7 @@ function App() {
       setAvailable(newData.map((e, index) => index));
     }).catch(console.log);
   }
-  
+
   function displayVideo() {
     const file = document.getElementById("audioFile").files[0];
     const src = URL.createObjectURL(file);
@@ -151,8 +130,8 @@ function App() {
       </video>
       <DragDropContext onDragEnd={onDragEnd}>
         <DataContext.Provider value={data}>
-          <ClipsPool clips={available} onDuplicate={(id) => duplicateClip(id, true)} onDelete={(id) => deleteClip(id, true)} onPlay={playClip} droppableId="available" id="available"></ClipsPool>
-          <ClipsPool clips={used} onDuplicate={(id) => duplicateClip(id, false)} onDelete={(id) => deleteClip(id, false)} onPlay={playClip} droppableId="used"></ClipsPool>
+          <ClipsPool clips={available} setClips={setAvailable} onPlay={playClip} droppableId="available" id="available"></ClipsPool>
+          <ClipsPool clips={used} setClips={setAvailable} onPlay={playClip} droppableId="used"></ClipsPool>
         </DataContext.Provider>
       </DragDropContext>
       <button onClick={buildMP3}>Export to mp3</button>
@@ -165,8 +144,19 @@ function App() {
   );
 }
 
-function ClipsPool(props) {//it is fed the available clips through props
-  const clips = props.clips//using state stops this from updating whenever the props change
+function ClipsPool({ clips, setClips, ...props }) {//it is fed the available clips through props
+
+  function duplicateClip(id) {
+    setClips([...clips, `${id}-${uniquenumber++}`]);
+  }
+
+  function deleteClip(id) {
+    const duplicateArray = [...clips];
+    duplicateArray.splice(duplicateArray.indexOf(id), 1)
+    setClips(duplicateArray);
+  }
+
+
   return <Droppable droppableId={props.droppableId} direction="horizontal">
     {(provided) =>
       <div
@@ -175,7 +165,7 @@ function ClipsPool(props) {//it is fed the available clips through props
         ref={provided.innerRef}
         {...provided.droppableProps}
       >
-        {clips.map((id, index) => <Clip onDuplicate={() => props.onDuplicate(id)} onDelete={() => props.onDelete(id)} onPlay={props.onPlay} draggableId={`${id}`} index={index} key={id}></Clip>)}
+        {clips.map((id, index) => <Clip onDuplicate={() => duplicateClip(id)} onDelete={() => deleteClip(id)} onPlay={props.onPlay} draggableId={`${id}`} index={index} key={id}></Clip>)}
         {provided.placeholder}
       </div>
     }
