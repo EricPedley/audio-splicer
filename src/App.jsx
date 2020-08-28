@@ -19,7 +19,7 @@ function App() {
   const [data, setData] = useState(placeholderData);//lookup table for info about each clip id
   const [DLID, setDLID] = useState();//id of file for upload and download
   const [isDLShowing, showDL] = useState(false);
-
+  console.log(available,used)
   const onDragEnd = result => {
     const { destination, source, draggableId } = result;
     if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index))//no destination or dropped in same location
@@ -36,6 +36,19 @@ function App() {
       setAvailable([...available, `${id}-${uniquenumber++}`]);
     } else {
       setUsed([...used, `${id}-${uniquenumber++}`]);
+    }
+    
+  }
+
+  function deleteClip(id,isAvailable) {
+    if (isAvailable) {
+      const duplicateArray = [...available];
+      duplicateArray.splice(duplicateArray.indexOf(id),1)
+      setAvailable(duplicateArray);
+    } else {
+      const duplicateArray = [...used];
+      duplicateArray.splice(duplicateArray.indexOf(id),1)
+      setUsed(duplicateArray);
     }
   }
 
@@ -101,6 +114,7 @@ function App() {
       setAvailable(newData.map((e, index) => index));
     }).catch(console.log);
   }
+  
   function displayVideo() {
     const file = document.getElementById("audioFile").files[0];
     const src = URL.createObjectURL(file);
@@ -110,7 +124,7 @@ function App() {
     video.load();
 
   }
-  
+
   function playClip(start, end) {
     const video = document.getElementById("video")
     video.currentTime = start;
@@ -128,6 +142,7 @@ function App() {
     video.play();
     //setTimeout(()=>{console.log("trying to pause video"); video.pause()},(end-start)*1000);
   }
+
   return (
     <div id="app">
       {/* TODO style the video element */}
@@ -136,15 +151,15 @@ function App() {
       </video>
       <DragDropContext onDragEnd={onDragEnd}>
         <DataContext.Provider value={data}>
-          <ClipsPool clips={available} onDuplicate={(id) => duplicateClip(id, true)} onPlay={playClip} droppableId="available" id="available"></ClipsPool>
-          <ClipsPool clips={used} onDuplicate={(id) => duplicateClip(id, false)} onPlay={playClip} droppableId="used"></ClipsPool>
+          <ClipsPool clips={available} onDuplicate={(id) => duplicateClip(id, true)} onDelete={(id) => deleteClip(id, true)} onPlay={playClip} droppableId="available" id="available"></ClipsPool>
+          <ClipsPool clips={used} onDuplicate={(id) => duplicateClip(id, false)} onDelete={(id) => deleteClip(id, false)} onPlay={playClip} droppableId="used"></ClipsPool>
         </DataContext.Provider>
       </DragDropContext>
       <button onClick={buildMP3}>Export to mp3</button>
       <button onClick={getPlaceholderData}>Get placeholder data</button>
       <button onClick={getData}>Get words</button>
       <button onClick={displayVideo}>Display video</button>
-      <input type="file" id="audioFile" name="audioFile" accept=".mp3, .mp4"></input><br></br>
+      <input type="file" id="audioFile" name="audioFile" accept=".mp3, .mp4" onChange={() => { console.log("changed file input") }}></input><br></br>
       {isDLShowing && <a href={`http://localhost:3001/tempfiles/output${DLID}.mp3`}>output link</a>}
     </div >
   );
@@ -160,7 +175,7 @@ function ClipsPool(props) {//it is fed the available clips through props
         ref={provided.innerRef}
         {...provided.droppableProps}
       >
-        {clips.map((id, index) => <Clip onDuplicate={() => props.onDuplicate(id)} onPlay={props.onPlay} draggableId={`${id}`} index={index} key={id}></Clip>)}
+        {clips.map((id, index) => <Clip onDuplicate={() => props.onDuplicate(id)} onDelete={() => props.onDelete(id)} onPlay={props.onPlay} draggableId={`${id}`} index={index} key={id}></Clip>)}
         {provided.placeholder}
       </div>
     }
@@ -169,16 +184,18 @@ function ClipsPool(props) {//it is fed the available clips through props
 
 function Clip(props) {
   const data = useContext(DataContext);
-  const { name, start, end } = data.find(element => Number(props.draggableId.split("-")[0]) === element.id);
+  const { name, start: initialStart, end: initialEnd } = data.find(element => Number(props.draggableId.split("-")[0]) === element.id);
+  const [start, setStart] = useState(initialStart);
+  const [end, setEnd] = useState(initialEnd);
   return <Draggable draggableId={props.draggableId} index={props.index}>
     {(provided) =>
-      <div className="clip"
-        ref={provided.innerRef}
-        {...provided.draggableProps}
-        {...provided.dragHandleProps}>
+      <div className="clip" ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
         {name}
-        <div>{start} - {end}</div>
+        <div>
+          <input type="text" className="time-input" defaultValue={start} onChange={(e) => { e.target.value && setStart(e.target.value) }}></input> - <input type="text" className="time-input" defaultValue={end} onChange={(e) => { e.target.value && setEnd(e.target.value) }}></input>
+        </div>
         <button onClick={props.onDuplicate}>Duplicate</button>
+        <button onClick={props.onDelete}>Delete</button>
         <button onClick={() => props.onPlay(start, end)}>Play</button>
       </div>}
   </Draggable>

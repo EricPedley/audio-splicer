@@ -13,3 +13,6 @@
 #app {
     text-align:center
 }
+.time-input {
+    max-width:2em
+}
