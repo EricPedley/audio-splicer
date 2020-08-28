@@ -26,6 +26,6 @@ yarn-error.log*
 *.mp4
 concatlist.txt
 .env
-uniqueNum.txt
+serverfiles/tempfiles
 pretrained_models
 spleeteroutput
