@@ -137,8 +137,7 @@ function App() {
       <button onClick={buildMP3}>Export to mp3</button>
       <button onClick={getPlaceholderData}>Get placeholder data</button>
       <button onClick={getData}>Get words</button>
-      <button onClick={displayVideo}>Display video</button>
-      <input type="file" id="audioFile" name="audioFile" accept=".mp3, .mp4" onChange={() => { console.log("changed file input") }}></input><br></br>
+      <input type="file" id="audioFile" name="audioFile" accept=".mp3, .mp4" onChange={displayVideo}></input><br></br>
       {isDLShowing && <a href={`http://localhost:3001/tempfiles/output${DLID}.mp3`}>output link</a>}
     </div >
   );
