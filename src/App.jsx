@@ -19,7 +19,7 @@ function App() {
   const [data, setData] = useState(placeholderData);//lookup table for info about each clip id
   const [DLID, setDLID] = useState();//id of file for upload and download
   const [isDLShowing, showDL] = useState(false);
-  console.log(available, used)
+  //console.log(available, used)
   const onDragEnd = result => {
     const { destination, source, draggableId } = result;
     if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index))//no destination or dropped in same location
@@ -131,7 +131,7 @@ function App() {
       <DragDropContext onDragEnd={onDragEnd}>
         <DataContext.Provider value={data}>
           <ClipsPool clips={available} setClips={setAvailable} onPlay={playClip} droppableId="available" id="available"></ClipsPool>
-          <ClipsPool clips={used} setClips={setAvailable} onPlay={playClip} droppableId="used"></ClipsPool>
+          <ClipsPool clips={used} setClips={setUsed} onPlay={playClip} droppableId="used"></ClipsPool>
         </DataContext.Provider>
       </DragDropContext>
       <button onClick={buildMP3}>Export to mp3</button>
