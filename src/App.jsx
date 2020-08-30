@@ -4,10 +4,10 @@ import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd'
 
 
 const placeholderData = [
-  {name: "never", start: "0", end: "1" },
-  {name: "gonna", start: "0", end: "1" },
-  {name: "give", start: "0", end: "1" },
-  {name: "you", start: "0", end: "1" }
+  { name: "never", start: "0", end: "1" },
+  { name: "gonna", start: "0", end: "1" },
+  { name: "give", start: "0", end: "1" },
+  { name: "you", start: "0", end: "1" }
 ];
 
 var uniquenumber = 0;
@@ -20,7 +20,7 @@ function App() {
   const [clips, setClips] = useState(placeholderData);//table of clip information
   const [DLID, setDLID] = useState();//id of file for upload and download
   const [isDLShowing, showDL] = useState(false);
-  
+
   const onDragEnd = result => {
     const { destination, source, draggableId } = result;
     if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index))//no destination or dropped in same location
@@ -58,7 +58,7 @@ function App() {
     fetch("http://localhost:3001/placeholder-fragments", options).then(res => res.json()).then(json => {
       console.log(json)
       setDLID(json.id);
-      const newData = json.data[0].timestamps.map((timestamp, index) => (
+      const newData = json.data.map((timestamp, index) => (
         {
           id: index,
           name: timestamp[0],
@@ -82,7 +82,7 @@ function App() {
     fetch("http://localhost:3001/audio-fragments", options).then(res => res.json()).then(json => {
       console.log(json)
       setDLID(json.id);
-      const newData = json.data[0].timestamps.map((timestamp, index) => (
+      const newData = json.data.map((timestamp, index) => (
         {
           id: index,
           name: timestamp[0],
@@ -106,30 +106,33 @@ function App() {
   }
 
   function playClip(start, end) {
-    const myPromise = new Promise(()=>{console.log("resolved")},()=>{console.log("error")})
-    const video = document.getElementById("video")
-    video.currentTime = start;
-    function oneTimePause() {
-      if (video.currentTime > end) {
-        console.log("video pausing");
-        video.pause();
-        Promise.resolve()
-        //video.removeEventListener("timeupdate",oneTimePause);
-      } else {
-        requestAnimationFrame(oneTimePause)
+    const myPromise = new Promise((resolve, reject) => {
+      const video = document.getElementById("video")
+      video.currentTime = start;
+      function oneTimePause() {
+        if (video.currentTime > end) {
+          console.log("video pausing");
+          video.pause();
+          resolve(end);
+          //video.removeEventListener("timeupdate",oneTimePause);
+        } else {
+          requestAnimationFrame(oneTimePause)
+        }
       }
-    }
-    requestAnimationFrame(oneTimePause)
-    //video.addEventListener("timeupdate", oneTimePause);
-    video.play();
+      requestAnimationFrame(oneTimePause)
+      //video.addEventListener("timeupdate", oneTimePause);
+      video.play();
+    })
+
     return myPromise;
     //setTimeout(()=>{console.log("trying to pause video"); video.pause()},(end-start)*1000);
   }
 
-  function playPreview() {
+  async function playPreview() {
     for(let clipID of usedIDs) {
-      const [start,end] = clips[clipID];
-      const myPromise = playClip(start,end);
+      const {start,end} = clips[clipID];
+      const res = await playClip(start, end);
+      console.log(res)
     }
   }
 
@@ -142,7 +145,7 @@ function App() {
       </video>
       {console.log(clips)}
       <DragDropContext onDragEnd={onDragEnd}>
-        <DataContext.Provider value={[clips,setClips]}>
+        <DataContext.Provider value={[clips, setClips]}>
           <ClipsPool clipsIDs={availableIDs} setClipsIDs={setAvailableIDs} onPlay={playClip} droppableId="availableIDs" id="availableIDs"></ClipsPool>
           <ClipsPool clipsIDs={usedIDs} setClipsIDs={setUsedIDs} onPlay={playClip} droppableId="usedIDs"></ClipsPool>
         </DataContext.Provider>
@@ -158,11 +161,11 @@ function App() {
 }
 
 function ClipsPool({ clipsIDs, setClipsIDs, ...props }) {//it is fed the availableIDs clips through props
-  const [clips,setClips] = useContext(DataContext);
+  const [clips, setClips] = useContext(DataContext);
   console.log(clipsIDs);
 
   function duplicateClip(id) {
-    setClipsIDs([...clipsIDs,clips.length]);
+    setClipsIDs([...clipsIDs, clips.length]);
     setClips([...clips, clips[id]]);
   }
 
@@ -188,8 +191,8 @@ function ClipsPool({ clipsIDs, setClipsIDs, ...props }) {//it is fed the availab
   </Droppable>
 }
 
-function Clip({id,...props}) {
-  const [clips,setClips] = useContext(DataContext);
+function Clip({ id, ...props }) {
+  const [clips, setClips] = useContext(DataContext);
   console.log(id)
   const { name, start: initialStart, end: initialEnd } = clips[id]
   const [start, setStart] = useState(initialStart);
@@ -198,27 +201,27 @@ function Clip({id,...props}) {
   function setStartGlobally(newVal) {
     setStart(newVal);
     const newArray = [...clips];
-    const oldClip = newArray.splice(id,1)[0];
-    oldClip.start=newVal;
-    newArray.splice(id,0,oldClip);
+    const oldClip = newArray.splice(id, 1)[0];
+    oldClip.start = newVal;
+    newArray.splice(id, 0, oldClip);
     setClips(newArray)
   }
 
   function setEndGlobally(newVal) {
     setEnd(newVal);
     const newArray = [...clips];
-    const oldClip = newArray.splice(id,1)[0];
-    oldClip.end=newVal;
-    newArray.splice(id,0,oldClip);
+    const oldClip = newArray.splice(id, 1)[0];
+    oldClip.end = newVal;
+    newArray.splice(id, 0, oldClip);
     setClips(newArray)
   }
 
-  return <Draggable draggableId={id+""} index={props.index}>
+  return <Draggable draggableId={id + ""} index={props.index}>
     {(provided) =>
       <div className="clip" ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}>
         {name}
         <div>
-          <input type="text" className="time-input" defaultValue={start} onChange={(e) => { e.target.value && setStartGlobally(e.target.value);}}></input> - <input type="text" className="time-input" defaultValue={end} onChange={(e) => { e.target.value && setEndGlobally(e.target.value) }}></input>
+          <input type="text" className="time-input" defaultValue={start} onChange={(e) => { e.target.value && setStartGlobally(e.target.value); }}></input> - <input type="text" className="time-input" defaultValue={end} onChange={(e) => { e.target.value && setEndGlobally(e.target.value) }}></input>
         </div>
         <button onClick={props.onDuplicate}>Duplicate</button>
         <button onClick={props.onDelete}>Delete</button>
