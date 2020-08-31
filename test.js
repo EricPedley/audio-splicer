@@ -37,7 +37,11 @@ for (let i = 1; i < clips.length; i++) {//concat them all(DOESN't WORK, USE TEXT
         console.log(`stdout: ${stdout}`);
     });
 }
-})();
+})//run function here
+
+const {createReadStream} = require("fs");
+const stream = createReadStream("input4audio.mp3");
+console.log(stream);
 
 function execPromise(command,callback) {
     return new Promise((resolve,reject)=> {

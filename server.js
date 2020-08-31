@@ -19,61 +19,56 @@ app.use(express.static("serverfiles"));
 app.post("/build-mp3", async function (req, res) {
     const { clips, id } = req.body;
     let concatListString = "";
-    //const audioFileName = `serverfiles/tempfiles/input${id}.mp4`;
+    const inputAudio = `serverfiles/tempfiles/input${id}.mp4`;
     //const audioFileName = `serverfiles/tempfiles/input20.mp4`;//HARD CODED change once done
-    //const inputTextFileName = "concatlist.txt";//HARD CODED (this might be fine)
-    //const outputAudioFileName = `serverfiles/tempfiles/output${id}.mp4`
-    for (const [start, end] of clips) {//create each separate clip
-        concatListString += `file ${audioFileName}\ninpoint ${start}\noutpoint ${end}\n`;
-        exec(`ffmpeg -i ${inputTextFileName} -ss ${start} -t ${start-end} ${start}${end}.mp4`, (error, stdout, stderr) => {
-            if (error) {
-                console.log(`error: ${error.message}`);
-                res.send({ result: "error", content: error.message });
-                return;
-            }
-            if (stderr) {
-                console.log(`stderr: ${stderr}`);
-                res.send({ result: "stderr", content: stderr });
-                return;
-            }
-            console.log(`stdout: ${stdout}`);
-        });
+    const inputTextFileName = "concatlist.txt";//HARD CODED (this might be fine)
+    const outputAudioFileName = `serverfiles/tempfiles/output${id}.mp4`
+    for (let i = 0; i < clips.length; i++) {//create each separate clip
+        const [start, end] = clips[i];
+        const command = `ffmpeg -i ${inputAudio} -ss ${start} -t ${end - start} ${i}.mp4`
+        const noErrors = await execPromise(command, printCMDOut);
+        if(noErrors)
+            concatListString+=`file ${i}.mp4\n`;
     }
-    for(let i=0;i<clips.length;i++) {//concat them all
-        const [start,end] = clips[i];
-        await execPromise(`ffmpeg -f concat -i outputconcatted.mp4 -i ${start}${end}.mp4 `, (error, stdout, stderr) => {
-            if (error) {
-                console.log(`error: ${error.message}`);
-                res.send({ result: "error", content: error.message });
-                return;
-            }
-            if (stderr) {
-                console.log(`stderr: ${stderr}`);
-                res.send({ result: "stderr", content: stderr });
-                return;
-            }
-            console.log(`stdout: ${stdout}`);
-        });
-    }
+    const command = `ffmpeg -f concat -i ${inputTextFileName} ${outputAudioFileName}`;
+    writeFileSync(inputTextFileName,concatListString);
+    const noErrors = await execPromise(command,printCMDOut);
+    if(noErrors)
+        res.send("all good");
+    else
+        res.send("encountered server errors");
 })
 
 function execPromise(command,callback) {
     return new Promise((resolve,reject)=> {
         exec(command,(error, stdout, stderr)=> {
-            callback(error, stdout, stderr);
-            resolve();
+            resolve(callback(error, stdout, stderr));
         })
     })
+}
+
+function printCMDOut(error, stdout, stderr) {//returns false on error and true on no error
+    if (error) {
+        console.log(`error: ${error.message}`);
+        return false;
+    }
+    if (stderr) {
+        console.log(`stderr: ${stderr}`);
+        return false;
+    }
+    console.log(`stdout: ${stdout}`);
+    return true
 }
 
 
 app.post("/audio-fragments", function (req, res) {//accepts an audio file, sends it to IBM cloud, then sends the relevant part of the IBM cloud response back to browser
     const file = req.files.audioFile;
     const uniqueNumber = generateUniqueNumber();
+    console.log(uniqueNumber);
     file.mv(`serverfiles/tempfiles/input${uniqueNumber}.mp4`);
     console.log("bruh")
     exec(`ffmpeg -i serverfiles/tempfiles/input${uniqueNumber}.mp4 serverfiles/tempfiles/input${uniqueNumber}audio.mp3`, async (error, stdout, stderr) => {
-        const stream = createReadStream(`serverfiles/tempfiles/input${uniqueNumber}audio.mp3`);
+        const stream = createReadStream(`input4audio.mp3`);
         console.log(stream)
 
         //works with the sample audio file but not the ffmpeg generated ones
