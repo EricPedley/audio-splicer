@@ -66,6 +66,7 @@ app.post("/audio-fragments", function (req, res) {//accepts an audio file, sends
     const uniqueNumber = generateUniqueNumber();
     file.mv(`serverfiles/tempfiles/input${uniqueNumber}.mp4`);
     const noErrors = await execPromise(`ffmpeg -i serverfiles/tempfiles/input${uniqueNumber}.mp4 serverfiles/tempfiles/input${uniqueNumber}audio.mp3`, printCMDOut);
+    //doesn't work because of ffmpeg bs. previous version(the exe on master branch) works fine
     if (noErrors) {
         const stream = createReadStream(`serverfiles/tempfiles/input${uniqueNumber}audio.mp3`);
         console.log(stream)
