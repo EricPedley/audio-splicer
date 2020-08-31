@@ -25,10 +25,10 @@ app.post("/build-mp3", async function (req, res) {
     const outputAudioFileName = `serverfiles/tempfiles/output${id}.mp4`
     for (let i = 0; i < clips.length; i++) {//create each separate clip
         const [start, end] = clips[i];
-        const command = `ffmpeg -i ${inputAudio} -ss ${start} -t ${end - start} ${i}.mp4`
+        const command = `ffmpeg -i ${inputAudio} -ss ${start} -t ${end - start} serverfiles/tempfiles/input${id}clip${i}.mp4`
         const noErrors = await execPromise(command, printCMDOut);
         if (noErrors)
-            concatListString += `file ${i}.mp4\n`;
+            concatListString += `file serverfiles/tempfiles/input${id}clip${i}.mp4\n`;
     }
     const command = `ffmpeg -f concat -i ${inputTextFileName} ${outputAudioFileName}`;
     writeFileSync(inputTextFileName, concatListString);
@@ -54,18 +54,18 @@ function printCMDOut(error, stdout, stderr) {//returns false on error and true o
     }
     if (stderr) {
         console.log(`stderr: ${stderr}`);
-        return false;
+        return true;
     }
     console.log(`stdout: ${stdout}`);
     return true
 }
 
 
-app.post("/audio-fragments", function (req, res) {//accepts an audio file, sends it to IBM cloud, then sends the relevant part of the IBM cloud response back to browser
+app.post("/audio-fragments", async function (req, res) {//accepts an audio file, sends it to IBM cloud, then sends the relevant part of the IBM cloud response back to browser
     const file = req.files.audioFile;
     const uniqueNumber = generateUniqueNumber();
     file.mv(`serverfiles/tempfiles/input${uniqueNumber}.mp4`);
-    const noErrors = await execPromise(`ffmpeg -i serverfiles/tempfiles/input${uniqueNumber}.mp4 serverfiles/tempfiles/input${uniqueNumber}audio.mp3`, printCMDOut);
+    const noErrors = await execPromise(`ffmpeg -i serverfiles/tempfiles/input${uniqueNumber}.mp4 -c:a libmp3lame serverfiles/tempfiles/input${uniqueNumber}audio.mp3`, printCMDOut);
     //doesn't work because of ffmpeg bs. previous version(the exe on master branch) works fine
     if (noErrors) {
         const stream = createReadStream(`serverfiles/tempfiles/input${uniqueNumber}audio.mp3`);
