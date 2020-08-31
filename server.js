@@ -16,19 +16,16 @@ app.use(express.json({ type: "application/json" }));
 app.use(fileUpload());
 app.use(express.static("serverfiles"));
 //app.use(express.raw())
-app.post("/build-mp3", function (req, res) {
+app.post("/build-mp3", async function (req, res) {
     const { clips, id } = req.body;
     let concatListString = "";
     //const audioFileName = `serverfiles/tempfiles/input${id}.mp4`;
-    const audioFileName = `serverfiles/tempfiles/input20.mp4`;//HARD CODED change once done
-    for (const [start, end] of clips) {
+    //const audioFileName = `serverfiles/tempfiles/input20.mp4`;//HARD CODED change once done
+    //const inputTextFileName = "concatlist.txt";//HARD CODED (this might be fine)
+    //const outputAudioFileName = `serverfiles/tempfiles/output${id}.mp4`
+    for (const [start, end] of clips) {//create each separate clip
         concatListString += `file ${audioFileName}\ninpoint ${start}\noutpoint ${end}\n`;
-    }
-    const inputTextFileName = "concatlist.txt";//HARD CODED (this might be fine)
-    const outputAudioFileName = `serverfiles/tempfiles/output${id}.mp4`
-    writeFile(inputTextFileName, concatListString, (err) => {
-        console.log(err);
-        exec(`ffmpeg -f concat -i ${inputTextFileName} ${outputAudioFileName}`, (error, stdout, stderr) => {
+        exec(`ffmpeg -i ${inputTextFileName} -ss ${start} -t ${start-end} ${start}${end}.mp4`, (error, stdout, stderr) => {
             if (error) {
                 console.log(`error: ${error.message}`);
                 res.send({ result: "error", content: error.message });
@@ -40,10 +37,34 @@ app.post("/build-mp3", function (req, res) {
                 return;
             }
             console.log(`stdout: ${stdout}`);
-            res.send({ result: "stdout", content: stdout, id })
         });
-    });
+    }
+    for(let i=0;i<clips.length;i++) {//concat them all
+        const [start,end] = clips[i];
+        await execPromise(`ffmpeg -f concat -i outputconcatted.mp4 -i ${start}${end}.mp4 `, (error, stdout, stderr) => {
+            if (error) {
+                console.log(`error: ${error.message}`);
+                res.send({ result: "error", content: error.message });
+                return;
+            }
+            if (stderr) {
+                console.log(`stderr: ${stderr}`);
+                res.send({ result: "stderr", content: stderr });
+                return;
+            }
+            console.log(`stdout: ${stdout}`);
+        });
+    }
 })
+
+function execPromise(command,callback) {
+    return new Promise((resolve,reject)=> {
+        exec(command,(error, stdout, stderr)=> {
+            callback(error, stdout, stderr);
+            resolve();
+        })
+    })
+}
 
 
 app.post("/audio-fragments", function (req, res) {//accepts an audio file, sends it to IBM cloud, then sends the relevant part of the IBM cloud response back to browser
