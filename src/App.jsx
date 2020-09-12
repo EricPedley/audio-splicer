@@ -45,7 +45,7 @@ function App() {
       },
       body: JSON.stringify({ clips: reqData, id: DLID })
     }
-    fetch("http://localhost:3001/build-mp3", options).then(res => {//since this creates a new file it reloads the window when run in the dev server
+    fetch("/build-mp3", options).then(res => {//since this creates a new file it reloads the window when run in the dev server
       console.log(res);
       showDL(true);
     });
@@ -55,7 +55,7 @@ function App() {
     const options = {
       method: "POST"
     }
-    fetch("http://localhost:3001/placeholder-fragments", options).then(res => res.json()).then(json => {
+    fetch("/placeholder-fragments", options).then(res => res.json()).then(json => {
       console.log(json)
       setDLID(json.id);
       const newData = json.data.map((timestamp, index) => (
@@ -79,7 +79,7 @@ function App() {
       method: "POST",
       body: form
     }
-    fetch("http://localhost:3001/audio-fragments", options).then(res => res.json()).then(json => {
+    fetch("/audio-fragments", options).then(res => res.json()).then(json => {
       console.log(json)
       setDLID(json.id);
       const newData = json.data.map((timestamp, index) => (
@@ -155,7 +155,7 @@ function App() {
       <button onClick={getData}>Get words</button>
       <button onClick={playPreview}>Play Preview</button>
       <input type="file" id="audioFile" name="audioFile" accept=".mp3, .mp4" onChange={displayVideo}></input><br></br>
-      {isDLShowing && <a href={`http://localhost:3001/tempfiles/output${DLID}.mp3`}>output link</a>}
+      {isDLShowing && <a href={`/tempfiles/output${DLID}.mp3`}>output link</a>}
     </div >
   );
 }
