@@ -140,7 +140,7 @@ export default function DnDMenu(props) {
             <button onClick={getData}>Get words</button>
             <button onClick={playPreview}>Play Preview</button>
             <input type="file" id="audioFile" name="audioFile" accept=".mp3, .mp4" onChange={displayVideo}></input><br></br>
-            {isDLShowing && <a href={`/tempfiles/output${DLID}.mp3`}>output link</a>}
+            {isDLShowing && <a href={`/tempfiles/output${DLID}.mp4`}>output link</a>}
         </div >
     );
 }

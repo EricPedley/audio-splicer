@@ -4,7 +4,7 @@ import DataContext from './DataContext.jsx';
 
 export default function ClipsPool({ clipsIDs, setClipsIDs, ...props }) {//it is fed the availableIDs clips through props
     const [clips, setClips] = useContext(DataContext);
-    
+
     function duplicateClip(id) {
       setClipsIDs([...clipsIDs, clips.length]);
       setClips([...clips, clips[id]]);

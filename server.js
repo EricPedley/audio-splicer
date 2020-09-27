@@ -14,6 +14,7 @@ const app = express();
 app.use(cors());
 app.use(express.json({ type: "application/json" }));
 app.use(fileUpload());
+app.use(express.static("build"));
 app.use(express.static("serverfiles"));
 //app.use(express.raw())
 app.post("/build-mp3", async function (req, res) {
