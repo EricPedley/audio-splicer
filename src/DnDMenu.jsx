@@ -1,7 +1,8 @@
 import React, { useState, useContext } from 'react';
-import ClipsPool from './ClipsPool.jsx'
+import ClipsPool from './ClipsPool.jsx';
+import ClipCreatorBar from './ClipCreatorBar';
 import { DragDropContext, } from 'react-beautiful-dnd';
-import DataContext, { DataContextProvider } from "./DataContext.jsx"
+import DataContext, { DataContextProvider } from "./DataContext.jsx";
 
 export default function DnDMenu(props) {
     const [availableIDs, setAvailableIDs] = useState([]);//the IDs of the unused clips
@@ -131,6 +132,7 @@ export default function DnDMenu(props) {
             <video id="video" controls visible="false">
                 <source id="source" type="video/mp4"></source>
             </video>
+            <ClipCreatorBar></ClipCreatorBar>
             <DragDropContext onDragEnd={onDragEnd}>
                 <ClipsPool clipsIDs={availableIDs} setClipsIDs={setAvailableIDs} onPlay={playClip} droppableId="availableIDs"></ClipsPool>
                 <ClipsPool clipsIDs={usedIDs} setClipsIDs={setUsedIDs} onPlay={playClip} droppableId="usedIDs"></ClipsPool>

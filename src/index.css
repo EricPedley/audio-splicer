@@ -16,3 +16,7 @@
 .time-input {
     max-width:2em
 }
+
+body {
+    margin:0;
+}
