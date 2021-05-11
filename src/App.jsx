@@ -15,6 +15,7 @@ function App() {
       <DataContextProvider>
         <DndMenu></DndMenu>
       </DataContextProvider>
+    <a href="https://github.com/EricPedley/audio-splicer">View Source on Github</a>
     </div >
   );
 }
